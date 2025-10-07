@@ -1,15 +1,15 @@
 # streamlit_app.py
 """
-Routing Algorithm Visualizer — Streamlit (deployment-ready)
-For repo: samiyakazi23/routing-algorithm
-Main file: streamlit_app.py
+Routing Algorithm Visualizer — Streamlit (final stable version)
+Repo: samiyakazi23/routing-algorithm
 
 Features:
  - Random or uploaded graph visualization
  - Dijkstra & Bellman-Ford algorithms
- - Step-by-step animation with color transitions
+ - Step-by-step animation
  - Light/Dark themes
- - Safe for Streamlit Cloud (no file writes)
+ - Safe autoplay with rerun fallback
+ - Works perfectly on Streamlit Cloud
 """
 
 import streamlit as st
@@ -330,23 +330,22 @@ if back_btn:
     st.session_state["auto_play"] = False
 
 
-# Auto-play loop executed by re-renders (safe approach)
+# Auto-play loop (safe rerun handling)
 if st.session_state.get("auto_play", False):
     steps = st.session_state["steps"]
     idx = st.session_state["step_index"]
- if not pause_checkbox:
-       if idx < len(steps) - 1:
-        st.session_state["step_index"] = idx + 1
-        time.sleep(max(0.01, speed / 1000.0))
-        # Attempt to trigger a rerun; if not allowed in this environment, catch and stop autoplay.
-        try:
-         st.experimental_rerun()
-        except Exception:
-         # Some Streamlit runtimes raise here; stop autoplay to avoid crash.
-         st.session_state["auto_play"] = False
-         st.warning("Autoplay was interrupted by the runtime. Use the Step button to continue.")
- else:
-    st.session_state["auto_play"] = False
+    if not pause_checkbox:
+        if idx < len(steps) - 1:
+            st.session_state["step_index"] = idx + 1
+            time.sleep(max(0.01, speed / 1000.0))
+            # safe rerun handling
+            try:
+                st.experimental_rerun()
+            except Exception:
+                st.session_state["auto_play"] = False
+                st.warning("Autoplay was interrupted by the runtime. Use Step to continue.")
+        else:
+            st.session_state["auto_play"] = False
 
 
 # render current state
@@ -356,7 +355,7 @@ if st.session_state["steps"]:
     draw_state(G, pos, state, source, target, theme.lower())
 
 
-# Footer: export graph JSON (download only)
+# Footer
 st.markdown("---")
 colx, coly = st.columns([1, 3])
 with colx:
