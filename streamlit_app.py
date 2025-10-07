@@ -334,13 +334,19 @@ if back_btn:
 if st.session_state.get("auto_play", False):
     steps = st.session_state["steps"]
     idx = st.session_state["step_index"]
-    if not pause_checkbox:
-        if idx < len(steps) - 1:
-            st.session_state["step_index"] = idx + 1
-            time.sleep(max(0.01, speed / 1000.0))
-            st.experimental_rerun()
-        else:
-            st.session_state["auto_play"] = False
+ if not pause_checkbox:
+       if idx < len(steps) - 1:
+        st.session_state["step_index"] = idx + 1
+        time.sleep(max(0.01, speed / 1000.0))
+        # Attempt to trigger a rerun; if not allowed in this environment, catch and stop autoplay.
+        try:
+         st.experimental_rerun()
+        except Exception:
+         # Some Streamlit runtimes raise here; stop autoplay to avoid crash.
+         st.session_state["auto_play"] = False
+         st.warning("Autoplay was interrupted by the runtime. Use the Step button to continue.")
+ else:
+    st.session_state["auto_play"] = False
 
 
 # render current state
